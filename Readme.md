@@ -22,9 +22,17 @@ make setup
 ```
 
 # Utilisation
+## Configuration
+
+Créer un .env.prod:
+
+(Exemple de format de clé secrète: `24den3&v&0f_=ugjw(^si#6!qv45wyr%5oldb9ci^&*jrqt%e4`)
+```bash
+echo "LUDIGESTION_SECRET_KEY=Une chaine de caractères aléatoire" > .env.prod
+```
+
+## Execution
 
 ```bash
 make run
 ```
-
-
