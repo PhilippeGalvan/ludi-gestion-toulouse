@@ -1,0 +1,13 @@
+.inner-header {
+    display: grid;
+}
+
+.user {
+    grid-column: 1;
+    grid-row: 1
+}
+
+.breadcrumb {
+    grid-column: 1;
+    grid-row: 3;
+}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ludi Gestion - Evènements{% endblock %}
+
+{% block content %}
+<div>
+    <link rel="stylesheet" href="{% static "css/events.css" %}" />
+        {% for event in events %}
+        <div class="event">
+                <div>
+                    <p>{{ event.name }} le {{ event.date_french_format }}</p>
+                    <p>{{ event.description }}</p>
+                </div>
+                <div>
+                    {% if user not in event.participants.all %}
+                    <form action="{% url 'events:register-member' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="event_uuid" value="{{ event.pk }}">
+                        <button type="submit">
+                            S'inscrire
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{% url 'events:unregister-member' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="event_uuid" value="{{ event.pk }}">
+                        <button type="submit">
+                            Se désinscrire
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+        </div>
+        {% endfor %}
+</div>
+{% endblock %}

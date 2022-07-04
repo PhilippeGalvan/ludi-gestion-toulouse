@@ -1,0 +1,32 @@
+.main_frame{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  left: 0;
+  position: fixed;
+  top: 0;
+  display: grid;
+  grid-template-rows: min-content 1fr min-content;
+}
+
+header{
+  grid-row: 1;
+  grid-auto-columns: auto;
+  border: #c5c5c5 3px solid;
+  justify-self: center;
+  align-self: center;
+  padding: 10px;
+  width: 100%;
+  top: 0;
+}
+
+.content{
+  grid-row: 2;
+  overflow-y: auto;
+}
+
+footer{
+  grid-row: 3;
+  border: #c5c5c5 3px solid;
+  bottom: 0;
+}

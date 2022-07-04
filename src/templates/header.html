@@ -1,0 +1,27 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static "css/header.css" %}" />
+<div class="inner-header">
+    <div class="user">
+    {% if user.is_authenticated %}
+        {% if user.is_staff %}
+        <div><a href="{% url 'admin:login' %}">Administration</a></div>
+        {% endif %}
+        Bonjour {{ user.username }}!
+        <div><a href="{% url 'logout' %}">Déconnexion</a></div>
+    {% else %}
+        <div>Vous n'êtes pas connecté</div>
+        <div><a href="{% url 'login' %}">Connexion</a></div>
+        <div><a href="{% url 'password_reset' %}">Mot de passe oublié ?</a></div>
+    {% endif %}
+    </div>
+    <p>
+        ---------------------------------------------------------------
+    </p>
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}">Accueil</a>
+        <a href="{% url 'events:all-events' %}">Évènements</a>
+        <a href="{% url 'random_gif' %}">Random Gif</a>
+    </div>
+</div>
+
