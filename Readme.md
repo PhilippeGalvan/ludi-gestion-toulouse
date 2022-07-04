@@ -36,3 +36,10 @@ echo "LUDIGESTION_SECRET_KEY=Une chaine de caractères aléatoire" > .env.prod
 ```bash
 make run
 ```
+
+# Developpement
+## Tester
+
+```bash
+make test
+```
