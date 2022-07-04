@@ -1,3 +1,7 @@
+setup:
+	poetry install
+	@$(MAKE) migrate --no-print-directory
+
 run:
 	poetry run python3 src/manage.py runserver
 
