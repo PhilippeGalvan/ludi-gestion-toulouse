@@ -29,7 +29,7 @@ env.read_env(BASE_DIR.parent.joinpath(".env.prod"))
 SECRET_KEY = env.str("LUDIGESTION_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("LUDIGESTION_DEBUG", default=False)
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
