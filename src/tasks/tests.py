@@ -24,3 +24,18 @@ class TestTask(TestCase):
         self.assertIsInstance(task_model, BaseModel)
         self.assertTrue(task_model.name, 'Test task')
         self.assertTrue(task_model.description, 'Test task description')
+
+
+class TestTasksDisplay(TestCase):
+    def test_task_display_exists(self):
+        response = self.client.get("/tasks/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_task_display_has_all_tasks(self):
+        Task(name='Test task').save()
+        Task(name='Test task 2').save()
+
+        response = self.client.get("/tasks/")
+
+        self.assertContains(response, 'Test task')
+        self.assertContains(response, 'Test task 2')

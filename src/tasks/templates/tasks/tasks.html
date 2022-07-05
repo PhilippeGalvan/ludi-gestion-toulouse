@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Ludi Gestion - Je veux aider{% endblock %}
+
+{% block content %}
+    <div>
+        {% for task in tasks %}
+            <p>{{ task.name }}</p>
+        {% endfor %}
+    </div>
+{% endblock %}

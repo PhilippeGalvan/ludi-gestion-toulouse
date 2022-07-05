@@ -22,6 +22,7 @@ from common.forms import CustomUserCreationForm
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('events/', include('events.urls')),
+    path('tasks/', include('tasks.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', CreateView.as_view(
             template_name='register.html',
