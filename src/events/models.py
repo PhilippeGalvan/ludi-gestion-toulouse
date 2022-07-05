@@ -1,10 +1,10 @@
 from uuid import uuid4
 
 from django.db import models
-from common.models import User
+from common.models import User, BaseModel
 
 
-class Event(models.Model):
+class Event(BaseModel):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
