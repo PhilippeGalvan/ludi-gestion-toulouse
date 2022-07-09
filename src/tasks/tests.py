@@ -1,6 +1,6 @@
 from django.test import TestCase
 from .models import Task
-from common.models import BaseModel
+from common.models import BaseModel, User
 
 
 class TestTask(TestCase):
@@ -39,3 +39,22 @@ class TestTasksDisplay(TestCase):
 
         self.assertContains(response, 'Test task')
         self.assertContains(response, 'Test task 2')
+
+
+class TestTaskCanBeClaimedByUser(TestCase):
+    def setUp(self):
+        self.task = Task(name='Test task')
+        self.task.save()
+        self.user = User(username='test_user')
+        self.user.set_password('test_password')
+        self.user.save()
+        self.client.login(username=self.user.username, password='test_password')
+
+    def tearDown(self) -> None:
+        Task.objects.all().delete()
+        User.objects.all().delete()
+
+    def test_task_can_have_users(self):
+        self.task.contributers.add(self.user)
+        self.assertEqual(self.task.contributers.count(), 1)
+        self.assertEqual(self.task.contributers.first(), self.user)

@@ -9,6 +9,7 @@ class Task(BaseModel):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
+    contributers = models.ManyToManyField('common.User', blank=True, related_name='tasks')
 
     class Meta:
         db_table = 'task'
