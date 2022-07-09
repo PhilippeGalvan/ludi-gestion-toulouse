@@ -44,7 +44,7 @@ class Event(BaseModel):
 class Candidacy(BaseModel):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    candidates = models.ManyToManyField(User, blank=True, related_name='candidacies')
+    candidates = models.ManyToManyField(User, related_name='candidacies')
 
     class Meta:
         db_table = 'candidacy'
