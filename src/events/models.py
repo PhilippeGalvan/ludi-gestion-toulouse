@@ -2,6 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from django.db import models, transaction
+from django import forms
 from common.models import User, BaseModel
 
 
@@ -52,7 +53,7 @@ class Event(BaseModel):
 class Candidacy(BaseModel):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='candidacies')
-    candidates = models.ManyToManyField(User, related_name='candidacies')
+    candidates = models.ManyToManyField(User, related_name='candidacies', through='CandidacyCandidate')
 
     class Meta:
         db_table = 'candidacy'
@@ -74,4 +75,22 @@ class Candidacy(BaseModel):
             f'Candidacy for {self.event.name} with >>'
             f'{", ".join(candidate.username for candidate in self.candidates.all())}<< '
             f'as candidate{"s" if len(self.candidates.all()) > 1 else ""}'
+        )
+
+
+class CandidacyCandidate(BaseModel):
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    candidacy = models.ForeignKey(Candidacy, on_delete=models.CASCADE, related_name='detailed_candidacies')
+    candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='detailed_candidacies')
+    player = models.BooleanField(default=False)
+    speaker = models.BooleanField(default=False)
+    arbiter = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'candidacy_candidate'
+
+    def __str__(self) -> str:
+        return (
+            f'Detailed candidacy for {self.candidacy.event.name} with >>'
+            f'{self.candidate.username}<< as candidate'
         )
