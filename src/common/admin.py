@@ -7,11 +7,13 @@ from common.models import User
 
 class EventInLine(admin.TabularInline):
     model = Event.participants.through
+    verbose_name = 'event'
     extra = 0
 
 
 class TaskInLine(admin.TabularInline):
     model = Task.contributers.through
+    verbose_name = 'task'
     extra = 0
 
 
