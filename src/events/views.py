@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
 from .models import Event
+from .app import add_participant_to_event
 
 
 class AllEventsView(LoginRequiredMixin, ListView):
@@ -25,7 +26,7 @@ def register_member(request):
         raise ValueError('Only POST requests are allowed')
 
     event = Event.objects.get(pk=request.POST["event_uuid"])
-    event.participants.add(request.user)
+    add_participant_to_event(request.user, event)
     return redirect('events:all-events')
 
 

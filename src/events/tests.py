@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from events.models import Event
 from common.models import User
+from .app import add_participant_to_event
 
 
 class TestEvent(TestCase):
@@ -35,7 +36,8 @@ class TestEvent(TestCase):
         )
         event.save()
 
-        event.participants.add(self.default_user)
+        add_participant_to_event(self.default_user, event)
+
         self.assertEqual(self.default_user.events.count(), 1)
         self.assertEqual(self.default_user.events.first(), event)
         self.assertEqual(Event.objects.first().participants.count(), 1)
@@ -173,7 +175,7 @@ class TestEventUnregisterMember(TestCase):
             max_participants=10,
         )
         self.event_to_unregister_from.save()
-        self.event_to_unregister_from.participants.add(self.default_user)
+        add_participant_to_event(self.default_user, self.event_to_unregister_from)
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
