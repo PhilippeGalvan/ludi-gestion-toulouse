@@ -7,6 +7,8 @@ admin.site.register(Candidacy)
 
 class CandidacyInline(admin.TabularInline):
     model = Candidacy
+    verbose_name = 'candidacy'
+    verbose_name_plural = 'candidacies'
     extra = 0
 
 
