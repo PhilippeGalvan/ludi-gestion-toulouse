@@ -68,3 +68,10 @@ class Candidacy(BaseModel):
         candidacy.save()
         candidacy.candidates.set(candidates)
         return candidacy
+
+    def __str__(self) -> str:
+        return (
+            f'Candidacy for {self.event.name} with >>'
+            f'{", ".join(candidate.username for candidate in self.candidates.all())}<< '
+            f'as candidate{"s" if len(self.candidates.all()) > 1 else ""}'
+        )
