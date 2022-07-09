@@ -1,9 +1,59 @@
 from django.test import TestCase
+from datetime import datetime, timezone
 
 from events.models import Event, Candidacy
 from common.models import User
 from .app import add_participant_to_event
 
+
+class TestObjectSequence:
+    _event = 0
+
+    @classmethod
+    def next_event_seq_num(cls):
+        def event_sequence_generator():
+            yield cls._event
+            cls._event += 1
+
+        return next(event_sequence_generator())
+
+test_object_sequence = TestObjectSequence()
+
+
+def new_test_event(
+    name: str = None,
+    description: str = None,
+    date_and_time: datetime = None,
+    location: str = None,
+    max_participants: int = None,
+    participants: list[User] = None,
+) -> Event:
+
+    event_seq_num = test_object_sequence.next_event_seq_num()
+
+    if name is None:
+        name = f'Test Event {event_seq_num}'
+    if description is None:
+        description = f'Test Event {event_seq_num} description'
+    if date_and_time is None:
+        date_and_time = datetime.utcnow().astimezone(timezone.utc)
+    if location is None:
+        location = f'Test Event {event_seq_num} location'
+    if max_participants is None:
+        max_participants = 10
+    if participants is None:
+        participants = []
+
+    event = Event.new_with_participants(
+        name,
+        description,
+        date_and_time,
+        location,
+        max_participants,
+        participants
+    )
+
+    return event
 
 class TestEvent(TestCase):
     def setUp(self) -> None:
@@ -15,26 +65,20 @@ class TestEvent(TestCase):
         User.objects.all().delete()
 
     def test_is_created(self):
-        new_event = Event(
+        Event.new_with_participants(
             name='Test Event',
             description='Test Event Description',
             date_and_time='2020-01-01T00:00:00Z',
             location='Test Event Location',
             max_participants=10,
-        )
-        new_event.save()
+            participants=[]
+        ).save()
+
         self.assertEqual(Event.objects.count(), 1)
         self.assertEqual(Event.objects.first().name, 'Test Event')
 
     def test_can_have_participants(self):
-        event = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        event.save()
+        event = new_test_event(participants=[])
 
         add_participant_to_event(self.default_user, event)
 
@@ -66,15 +110,7 @@ class TestAllEvents(TestCase):
 
     def test_with_events_returns_events(self):
         nb_events = 2
-        for day in range(nb_events):
-            event = Event(
-                name='Test Event',
-                description='Test Event Description',
-                date_and_time=f'2020-01-{str(day+1).zfill(2)}T00:00:00Z',
-                location='Test Event Location',
-                max_participants=10,
-            )
-            event.save()
+        [new_test_event() for _ in range(nb_events)]
 
         response = self.client.get(self.view_path, follow=True)
 
@@ -90,14 +126,7 @@ class TestAllEvents(TestCase):
         self.assertRedirects(response, '/accounts/login/?next=/events/')
 
     def test_with_events_displays_event_name(self):
-        event = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        event.save()
+        event = new_test_event()
 
         response = self.client.get(self.view_path)
 
@@ -106,14 +135,7 @@ class TestAllEvents(TestCase):
         self.assertIn(event.name, response.content.decode())
 
     def test_with_events_display_register_button(self):
-        event = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        event.save()
+        new_test_event()
 
         response = self.client.get(self.view_path)
 
@@ -128,14 +150,7 @@ class TestEventRegisterMember(TestCase):
         self.default_user = User(username='test_user')
         self.default_user.set_password('test_password')
         self.default_user.save()
-        self.event_to_register_to = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        self.event_to_register_to.save()
+        self.event_to_register_to = new_test_event()
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
@@ -167,15 +182,7 @@ class TestEventUnregisterMember(TestCase):
         self.default_user = User(username='test_user')
         self.default_user.set_password('test_password')
         self.default_user.save()
-        self.event_to_unregister_from = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        self.event_to_unregister_from.save()
-        add_participant_to_event(self.default_user, self.event_to_unregister_from)
+        self.event_to_unregister_from = new_test_event(participants=[self.default_user])
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
@@ -208,14 +215,7 @@ class TestCandidacyModel(TestCase):
         for candidate in self.candidates:
             candidate.save()
 
-        self.event_to_candidate_to = Event(
-            name='Test Event',
-            description='Test Event Description',
-            date_and_time='2020-01-01T00:00:00Z',
-            location='Test Event Location',
-            max_participants=10,
-        )
-        self.event_to_candidate_to.save()
+        self.event_to_candidate_to = new_test_event()
 
     def test_create_candidacy_can_be_created(self):
         Candidacy.from_event_and_candidates(self.event_to_candidate_to, self.candidates)

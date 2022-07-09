@@ -1,6 +1,7 @@
 from uuid import uuid4
+from datetime import datetime
 
-from django.db import models
+from django.db import models, transaction
 from common.models import User, BaseModel
 
 
@@ -22,6 +23,22 @@ class Event(BaseModel):
 
     class Meta:
         db_table = 'event'
+
+    @classmethod
+    @transaction.atomic()
+    def new_with_participants(
+        cls,
+        name: str,
+        description: str,
+        date_and_time: datetime,
+        location: str,
+        max_participants: int,
+        participants: list[User],
+    ):
+        event = cls(name=name, description=description, date_and_time=date_and_time, location=location, max_participants=max_participants)
+        event.save()
+        event.participants.set(participants)
+        return event
 
 
 class Candidacy(BaseModel):
