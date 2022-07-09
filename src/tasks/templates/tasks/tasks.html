@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Ludi Gestion - Je veux aider{% endblock %}
 
 {% block content %}
-    <div>
-        {% for task in tasks %}
+    <link rel="stylesheet" href="{% static "css/tasks.css" %}" />
+    {% for task in tasks %}
+        <div class="task">
             <p>{{ task.name }}</p>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
 {% endblock %}
