@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from events.models import Event
+from events.models import Event, Candidacy
 from common.models import User
 from .app import add_participant_to_event
 
@@ -197,3 +197,44 @@ class TestEventUnregisterMember(TestCase):
 
         event_with_registration = Event.objects.get(uuid=self.event_to_unregister_from.uuid)
         self.assertEqual(event_with_registration.participants.count(), 0)
+
+
+class TestCandidacyModel(TestCase):
+    def setUp(self) -> None:
+        self.candidates = [
+            User(username='test_user'),
+            User(username='test_user2'),
+        ]
+        for candidate in self.candidates:
+            candidate.save()
+
+        self.event_to_candidate_to = Event(
+            name='Test Event',
+            description='Test Event Description',
+            date_and_time='2020-01-01T00:00:00Z',
+            location='Test Event Location',
+            max_participants=10,
+        )
+        self.event_to_candidate_to.save()
+
+    def test_create_candidacy_can_be_created(self):
+        Candidacy.from_event_and_candidates(self.event_to_candidate_to, self.candidates)
+
+    def test_candidacy_must_be_linked_to_an_event(self):
+        with self.assertRaises(ValueError) as e:
+            Candidacy.from_event_and_candidates(None, self.candidates)
+        
+        self.assertEqual(str(e.exception), 'An event is required to create a candidacy')
+
+    def test_candidacy_must_be_linked_to_at_least_a_candidate(self):
+        Candidacy.from_event_and_candidates(self.event_to_candidate_to, self.candidates[-1:])
+        with self.assertRaises(ValueError) as e:
+            Candidacy.from_event_and_candidates(self.event_to_candidate_to, [])
+
+        self.assertEqual(str(e.exception), 'At least one candidate is required to create a candidacy')
+
+        with self.assertRaises(ValueError) as e:
+            Candidacy.from_event_and_candidates(self.event_to_candidate_to, None)
+
+        self.assertEqual(str(e.exception), 'At least one candidate is required to create a candidacy')
+

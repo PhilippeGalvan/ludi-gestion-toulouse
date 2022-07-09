@@ -22,3 +22,24 @@ class Event(BaseModel):
 
     class Meta:
         db_table = 'event'
+
+
+class Candidacy(BaseModel):
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    candidates = models.ManyToManyField(User, blank=True, related_name='candidacies')
+
+    class Meta:
+        db_table = 'candidacy'
+
+    @classmethod
+    def from_event_and_candidates(cls, event: Event, candidates: list[User]) -> "Candidacy":
+        if not event:
+            raise ValueError('An event is required to create a candidacy')
+        if not candidates:
+            raise ValueError('At least one candidate is required to create a candidacy')
+
+        candidacy = cls(event=event)
+        candidacy.save()
+        candidacy.candidates.set(candidates)
+        return candidacy
