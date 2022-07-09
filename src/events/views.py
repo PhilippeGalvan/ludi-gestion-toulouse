@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
 from .models import Event
-from .app import add_participant_to_event
+from .app import add_participant_to_event, remove_participant_from_event
 
 
 class AllEventsView(LoginRequiredMixin, ListView):
@@ -36,5 +36,5 @@ def unregister_member(request):
         raise ValueError('Only POST requests are allowed')
 
     event = Event.objects.get(pk=request.POST["event_uuid"])
-    event.participants.remove(request.user)
+    remove_participant_from_event(request.user, event)
     return redirect('events:all-events')
