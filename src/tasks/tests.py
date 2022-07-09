@@ -51,8 +51,7 @@ class TestTaskCanBeClaimedByUser(TestCase):
         self.client.login(username=self.user.username, password='test_password')
 
     def tearDown(self) -> None:
-        Task.objects.all().delete()
-        User.objects.all().delete()
+        pass
 
     def test_task_can_have_users(self):
         self.task.contributers.add(self.user)

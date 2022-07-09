@@ -61,8 +61,7 @@ class TestEvent(TestCase):
         self.default_user.save()
 
     def tearDown(self) -> None:
-        Event.objects.all().delete()
-        User.objects.all().delete()
+        pass
 
     def test_is_created(self):
         Event.new_with_participants(
@@ -97,8 +96,6 @@ class TestAllEvents(TestCase):
         self.client.login(username=self.default_user.username, password='test_password')
     
     def tearDown(self) -> None:
-        Event.objects.all().delete()
-        User.objects.all().delete()
         self.client.logout()
 
     def test_without_events_returns_no_events(self):
@@ -154,8 +151,7 @@ class TestEventRegisterMember(TestCase):
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
-        Event.objects.all().delete()
-        User.objects.all().delete()
+        pass
 
     def test_register_adds_member_to_event(self):
         self.assertEqual(self.event_to_register_to.participants.count(), 0)
@@ -186,8 +182,7 @@ class TestEventUnregisterMember(TestCase):
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
-        Event.objects.all().delete()
-        User.objects.all().delete()
+        pass
 
     def test_unregister_removes_member_from_event(self):
         self.assertEqual(self.event_to_unregister_from.participants.count(), 1)
