@@ -12,11 +12,18 @@ class Event(BaseModel):
     date_and_time = models.DateTimeField()
     location = models.TextField()
     max_participants = models.PositiveIntegerField()
-    participants = models.ManyToManyField(User, blank=True, related_name='events')
 
     @property
     def date_french_format(self):
         return self.date_and_time.strftime('%d/%m/%Y %H:%M')
+
+    @property
+    def candidates(self) -> set[User]:
+        candidates = set()
+        for candidacy in self.candidacies.all():
+            for user in candidacy.candidates.all():
+                candidates.add(user)
+        return candidates
 
     def __str__(self):
         return self.name
@@ -26,24 +33,25 @@ class Event(BaseModel):
 
     @classmethod
     @transaction.atomic()
-    def new_with_participants(
+    def factory(
         cls,
         name: str,
         description: str,
         date_and_time: datetime,
         location: str,
         max_participants: int,
-        participants: list[User],
+        candidacy_as_list_of_users: list[User] = None,
     ):
         event = cls(name=name, description=description, date_and_time=date_and_time, location=location, max_participants=max_participants)
         event.save()
-        event.participants.set(participants)
+        if candidacy_as_list_of_users:
+            Candidacy.from_event_and_candidates(event, candidacy_as_list_of_users)
         return event
 
 
 class Candidacy(BaseModel):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='candidacies')
     candidates = models.ManyToManyField(User, related_name='candidacies')
 
     class Meta:

@@ -3,8 +3,8 @@ from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
-from .models import Event
-from .app import add_participant_to_event, remove_participant_from_event
+from .models import Event, Candidacy
+from .app import remove_candidacy, add_candidacy_to_event
 
 
 class AllEventsView(LoginRequiredMixin, ListView):
@@ -26,7 +26,7 @@ def register_member(request):
         raise ValueError('Only POST requests are allowed')
 
     event = Event.objects.get(pk=request.POST["event_uuid"])
-    add_participant_to_event(request.user, event)
+    add_candidacy_to_event(event, [request.user])
     return redirect('events:all-events')
 
 
@@ -35,6 +35,6 @@ def unregister_member(request):
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
-    event = Event.objects.get(pk=request.POST["event_uuid"])
-    remove_participant_from_event(request.user, event)
+    candidacy = Candidacy.objects.get(pk=request.POST["candidacy_uuid"])
+    remove_candidacy(candidacy)
     return redirect('events:all-events')

@@ -1,14 +1,8 @@
 from django.contrib import admin
 
-from events.models import Event
+from events.models import Candidacy
 from tasks.models import Task
 from common.models import User
-
-
-class EventInLine(admin.TabularInline):
-    model = Event.participants.through
-    verbose_name = 'event'
-    extra = 0
 
 
 class TaskInLine(admin.TabularInline):
@@ -20,6 +14,5 @@ class TaskInLine(admin.TabularInline):
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     inlines = [
-        EventInLine,
         TaskInLine,
     ]

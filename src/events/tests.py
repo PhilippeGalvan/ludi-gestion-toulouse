@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from events.models import Event, Candidacy
 from common.models import User
-from .app import add_participant_to_event
+from .app import add_candidacy_to_event
 
 
 class TestObjectSequence:
@@ -44,13 +44,13 @@ def new_test_event(
     if participants is None:
         participants = []
 
-    event = Event.new_with_participants(
+    event = Event.factory(
         name,
         description,
         date_and_time,
         location,
         max_participants,
-        participants
+        participants,
     )
 
     return event
@@ -64,26 +64,27 @@ class TestEvent(TestCase):
         pass
 
     def test_is_created(self):
-        Event.new_with_participants(
+        Event.factory(
             name='Test Event',
             description='Test Event Description',
             date_and_time='2020-01-01T00:00:00Z',
             location='Test Event Location',
             max_participants=10,
-            participants=[]
-        ).save()
+        )
 
         self.assertEqual(Event.objects.count(), 1)
         self.assertEqual(Event.objects.first().name, 'Test Event')
 
-    def test_can_have_participants(self):
+    def test_can_have_candidacies(self):
         event = new_test_event(participants=[])
 
-        add_participant_to_event(self.default_user, event)
+        add_candidacy_to_event(event, [self.default_user])
 
-        self.assertEqual(self.default_user.events.count(), 1)
-        self.assertEqual(self.default_user.events.first(), event)
-        self.assertEqual(Event.objects.first().participants.count(), 1)
+        self.assertEqual(self.default_user.candidacies.count(), 1)
+        new_candidacy = self.default_user.candidacies.first()
+        self.assertEqual(new_candidacy.event, event)
+        self.assertEqual(new_candidacy.candidates.count(), 1)
+        self.assertEqual(new_candidacy.candidates.first(), self.default_user)
 
 
 class TestAllEvents(TestCase):
@@ -141,7 +142,7 @@ class TestAllEvents(TestCase):
         self.assertIn('S\'inscrire', response.content.decode())
 
 
-class TestEventRegisterMember(TestCase):
+class TestEventRegisterCandidacy(TestCase):
     def setUp(self) -> None:
         self.view_path = '/events/register/'
         self.default_user = User(username='test_user')
@@ -153,8 +154,8 @@ class TestEventRegisterMember(TestCase):
     def tearDown(self) -> None:
         pass
 
-    def test_register_adds_member_to_event(self):
-        self.assertEqual(self.event_to_register_to.participants.count(), 0)
+    def test_register_adds_candidacy_to_event(self):
+        self.assertEqual(self.event_to_register_to.candidacies.count(), 0)
 
         response = self.client.post(
             self.view_path,
@@ -167,8 +168,11 @@ class TestEventRegisterMember(TestCase):
         self.assertEqual(response.status_code, 200)
 
         event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
-        self.assertEqual(event_with_registration.participants.count(), 1)
-        self.assertEqual(event_with_registration.participants.first(), self.default_user)
+        self.assertEqual(event_with_registration.candidacies.count(), 1)
+
+        candidacy = event_with_registration.candidacies.first()
+        self.assertEqual(candidacy.candidates.all()[0], self.default_user)
+        self.assertEqual(candidacy.event, self.event_to_register_to)
 
 
 class TestEventUnregisterMember(TestCase):
@@ -184,13 +188,14 @@ class TestEventUnregisterMember(TestCase):
     def tearDown(self) -> None:
         pass
 
-    def test_unregister_removes_member_from_event(self):
-        self.assertEqual(self.event_to_unregister_from.participants.count(), 1)
+    def test_unregister_removes_candidacy_from_event(self):
+        self.assertEqual(self.event_to_unregister_from.candidacies.count(), 1)
 
         response = self.client.post(
             self.view_path,
             {
-                'event_uuid': self.event_to_unregister_from.uuid
+                'event_uuid': self.event_to_unregister_from.uuid,
+                'candidacy_uuid': self.event_to_unregister_from.candidacies.first().uuid
             },
             follow=True,
         )
@@ -198,7 +203,7 @@ class TestEventUnregisterMember(TestCase):
         self.assertRedirects(response, self.events_view_path)
 
         event_with_registration = Event.objects.get(uuid=self.event_to_unregister_from.uuid)
-        self.assertEqual(event_with_registration.participants.count(), 0)
+        self.assertEqual(event_with_registration.candidacies.count(), 0)
 
 
 class TestCandidacyModel(TestCase):
