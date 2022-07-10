@@ -206,7 +206,6 @@ class TestEventRegisterCandidacy(TestCase):
 
 class TestEventUnregisterCandidacy(TestCase):
     def setUp(self) -> None:
-        self.view_path = '/events/unregister/'
         self.events_view_path = '/events/'
         self.default_user = User(username='test_user')
         self.default_user.set_password('test_password')
@@ -225,13 +224,9 @@ class TestEventUnregisterCandidacy(TestCase):
 
     def test_removes_candidacy_from_event(self):
         self.assertEqual(self.event_to_unregister_from.candidacies.count(), 1)
-
+        path = f'/events/{self.event_to_unregister_from.uuid}/candidacies/{self.event_to_unregister_from.candidacies.first().uuid}/'
         response = self.client.post(
-            self.view_path,
-            {
-                'event_uuid': self.event_to_unregister_from.uuid,
-                'candidacy_uuid': self.event_to_unregister_from.candidacies.first().uuid
-            },
+            path,
             follow=True,
         )
 

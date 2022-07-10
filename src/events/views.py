@@ -44,10 +44,11 @@ def register_candidacy(request):
 
 
 @login_required
-def unregister_candidacy(request):
+def unregister_candidacy(request, event_uuid: str, candidacy_uuid: str):
+    print(request.method)
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
-    candidacy = Candidacy.objects.get(pk=request.POST["candidacy_uuid"])
+    candidacy = Candidacy.objects.get(pk=candidacy_uuid)
     remove_candidacy(candidacy)
     return redirect('events:all-events')

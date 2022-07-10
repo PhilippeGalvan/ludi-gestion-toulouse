@@ -7,5 +7,5 @@ app_name = 'events'
 urlpatterns = [
     path('', AllEventsView.as_view(), name='all-events'),
     path('register/', register_candidacy, name='register-member'),
-    path('unregister/', unregister_candidacy, name='unregister-member'),
+    path('<str:event_uuid>/candidacies/<str:candidacy_uuid>/', unregister_candidacy, name='unregister-candidacy'),
 ]
