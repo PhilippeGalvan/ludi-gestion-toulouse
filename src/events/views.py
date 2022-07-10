@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Event, Candidacy
 from .app import remove_candidacy, register_new_candidacy
 from .core import CandidateCandidacyRequest
+from .forms import IndividualCandidacyForm
 
 
 class AllEventsView(LoginRequiredMixin, ListView):
@@ -16,7 +17,7 @@ class AllEventsView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        context["individual_candidacy_form"] = IndividualCandidacyForm()
         return context
 
 
@@ -25,14 +26,19 @@ def register_member(request):
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
-    event = Event.objects.get(pk=request.POST["event_uuid"])
-    candidate_candidacy_requests = [
-        CandidateCandidacyRequest(
-            candidate=request.user,
-            as_player=True,
-        )
-    ]
-    register_new_candidacy(event, candidate_candidacy_requests)
+    form = IndividualCandidacyForm(request.POST)
+    if form.is_valid():
+        event = Event.objects.get(pk=request.POST["event_uuid"])
+        candidate_candidacy_requests = [
+            CandidateCandidacyRequest(
+                candidate=request.user,
+                as_player=form.cleaned_data["player"],
+                as_arbiter=form.cleaned_data["arbiter"],
+                as_disk_jockey=form.cleaned_data["disk_jockey"],
+                as_speaker=form.cleaned_data["speaker"],
+            )
+        ]
+        register_new_candidacy(event, candidate_candidacy_requests)
 
     return redirect('events:all-events')
 

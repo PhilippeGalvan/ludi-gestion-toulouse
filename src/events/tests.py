@@ -5,6 +5,7 @@ from events.models import Event, Candidacy
 from common.models import User
 from .app import register_new_candidacy
 from .core import CandidateCandidacyRequest
+from .forms import IndividualCandidacyForm
 
 
 class TestObjectSequence:
@@ -143,7 +144,7 @@ class TestAllEvents(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, self.list_event_template)
-        self.assertIn('S\'inscrire', response.content.decode())
+        self.assertIn('Postuler', response.content.decode())
 
 
 class TestEventRegisterCandidacy(TestCase):
@@ -160,11 +161,18 @@ class TestEventRegisterCandidacy(TestCase):
 
     def test_register_adds_candidacy_to_event(self):
         self.assertEqual(self.event_to_register_to.candidacies.count(), 0)
+        individual_candidacy_form_response = {
+            'player': ['on'],
+            'speaker': ['on'],
+            'arbiter': ['on'],
+            'disk_jockey': ['on'],
+        }
 
         response = self.client.post(
             self.view_path,
             {
-                'event_uuid': self.event_to_register_to.uuid
+                'event_uuid': self.event_to_register_to.uuid,
+                **individual_candidacy_form_response,
             },
             follow=True,
         )
@@ -177,6 +185,23 @@ class TestEventRegisterCandidacy(TestCase):
         candidacy = event_with_registration.candidacies.first()
         self.assertEqual(candidacy.candidates.all()[0], self.default_user)
         self.assertEqual(candidacy.event, self.event_to_register_to)
+
+    def test_that_a_candidacy_is_added_with_at_least_one_role_per_candidate(self):
+        self.assertEqual(self.event_to_register_to.candidacies.count(), 0)
+        individual_candidacy_form_response = {
+        }
+
+        response = self.client.post(
+            self.view_path,
+            {
+                'event_uuid': self.event_to_register_to.uuid,
+                **individual_candidacy_form_response,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.event_to_register_to.candidacies.count(), 0)
 
 
 class TestEventUnregisterCandidacy(TestCase):
