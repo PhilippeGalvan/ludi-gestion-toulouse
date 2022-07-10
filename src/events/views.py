@@ -22,13 +22,13 @@ class AllEventsView(LoginRequiredMixin, ListView):
 
 
 @login_required
-def register_candidacy(request):
+def register_candidacy(request, event_uuid: str):
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
     form = IndividualCandidacyForm(request.POST)
     if form.is_valid():
-        event = Event.objects.get(pk=request.POST["event_uuid"])
+        event = Event.objects.get(pk=event_uuid)
         candidate_candidacy_requests = [
             CandidateCandidacyRequest(
                 candidate=request.user,

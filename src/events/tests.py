@@ -149,11 +149,11 @@ class TestAllEvents(TestCase):
 
 class TestEventRegisterCandidacy(TestCase):
     def setUp(self) -> None:
-        self.view_path = '/events/register/'
         self.default_user = User(username='test_user')
         self.default_user.set_password('test_password')
         self.default_user.save()
         self.event_to_register_to = new_test_event()
+        self.view_path = f'/events/{self.event_to_register_to.pk}/candidacies/'
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
@@ -171,7 +171,6 @@ class TestEventRegisterCandidacy(TestCase):
         response = self.client.post(
             self.view_path,
             {
-                'event_uuid': self.event_to_register_to.uuid,
                 **individual_candidacy_form_response,
             },
             follow=True,
@@ -194,7 +193,6 @@ class TestEventRegisterCandidacy(TestCase):
         response = self.client.post(
             self.view_path,
             {
-                'event_uuid': self.event_to_register_to.uuid,
                 **individual_candidacy_form_response,
             },
             follow=True,

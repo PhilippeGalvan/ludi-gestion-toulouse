@@ -14,9 +14,8 @@
             </div>
             {% if user not in event.candidates %}
             <div>
-                <form action="{% url 'events:register-member' %}" method="post">
+                <form action="{% url 'events:register-member' event.pk%}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="event_uuid" value="{{ event.pk }}">
                     {{ individual_candidacy_form.as_p }}
                     <input type="submit" value="Postuler">
                 </form>
