@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 
 from events.models import Event, Candidacy
 from common.models import User
-from .app import add_candidacy_to_event
+from .app import register_new_candidacy
+from .core import CandidateCandidacyRequest
 
 
 class TestObjectSequence:
@@ -26,7 +27,7 @@ def new_test_event(
     date_and_time: datetime = None,
     location: str = None,
     max_participants: int = None,
-    participants: list[User] = None,
+    candidate_candidacy_requests: list[User] = None,
 ) -> Event:
 
     event_seq_num = test_object_sequence.next_event_seq_num()
@@ -41,8 +42,6 @@ def new_test_event(
         location = f'Test Event {event_seq_num} location'
     if max_participants is None:
         max_participants = 10
-    if participants is None:
-        participants = []
 
     event = Event.factory(
         name,
@@ -50,8 +49,9 @@ def new_test_event(
         date_and_time,
         location,
         max_participants,
-        participants,
     )
+    if candidate_candidacy_requests:
+        Candidacy.from_event_and_candidate_candidacy_requests(event, candidate_candidacy_requests)
 
     return event
 
@@ -76,9 +76,13 @@ class TestEvent(TestCase):
         self.assertEqual(Event.objects.first().name, 'Test Event')
 
     def test_can_have_candidacies(self):
-        event = new_test_event(participants=[])
+        event = new_test_event()
+        candidate_candidacy_request = CandidateCandidacyRequest(
+            candidate=self.default_user,
+            as_player=True,
+        )
 
-        add_candidacy_to_event(event, [self.default_user])
+        register_new_candidacy(event, [candidate_candidacy_request])
 
         self.assertEqual(self.default_user.candidacies.count(), 1)
         new_candidacy = self.default_user.candidacies.first()
@@ -175,20 +179,26 @@ class TestEventRegisterCandidacy(TestCase):
         self.assertEqual(candidacy.event, self.event_to_register_to)
 
 
-class TestEventUnregisterMember(TestCase):
+class TestEventUnregisterCandidacy(TestCase):
     def setUp(self) -> None:
         self.view_path = '/events/unregister/'
         self.events_view_path = '/events/'
         self.default_user = User(username='test_user')
         self.default_user.set_password('test_password')
         self.default_user.save()
-        self.event_to_unregister_from = new_test_event(participants=[self.default_user])
+        candidate_candidacy_request = CandidateCandidacyRequest(
+            candidate=self.default_user,
+            as_player=True,
+        )
+        self.event_to_unregister_from = new_test_event(
+            candidate_candidacy_requests=[candidate_candidacy_request],
+        )
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
         pass
 
-    def test_unregister_removes_candidacy_from_event(self):
+    def test_removes_candidacy_from_event(self):
         self.assertEqual(self.event_to_unregister_from.candidacies.count(), 1)
 
         response = self.client.post(
@@ -208,33 +218,90 @@ class TestEventUnregisterMember(TestCase):
 
 class TestCandidacyModel(TestCase):
     def setUp(self) -> None:
-        self.candidates = [
+        candidates = [
             User(username='test_user'),
             User(username='test_user2'),
         ]
-        for candidate in self.candidates:
+        for candidate in candidates:
             candidate.save()
 
         self.event_to_candidate_to = new_test_event()
+        self.candidate_candidacy_requests = [
+            CandidateCandidacyRequest(
+                candidate=candidate,
+                as_player=True,
+            ) for candidate in candidates
+        ]
 
     def test_create_candidacy_can_be_created(self):
-        Candidacy.from_event_and_candidates(self.event_to_candidate_to, self.candidates)
+        Candidacy.from_event_and_candidate_candidacy_requests(self.event_to_candidate_to, self.candidate_candidacy_requests)
 
     def test_candidacy_must_be_linked_to_an_event(self):
         with self.assertRaises(ValueError) as e:
-            Candidacy.from_event_and_candidates(None, self.candidates)
+            Candidacy.from_event_and_candidate_candidacy_requests(None, self.candidate_candidacy_requests)
         
         self.assertEqual(str(e.exception), 'An event is required to create a candidacy')
 
     def test_candidacy_must_be_linked_to_at_least_a_candidate(self):
-        Candidacy.from_event_and_candidates(self.event_to_candidate_to, self.candidates[-1:])
+        Candidacy.from_event_and_candidate_candidacy_requests(self.event_to_candidate_to, self.candidate_candidacy_requests[-1:])
         with self.assertRaises(ValueError) as e:
-            Candidacy.from_event_and_candidates(self.event_to_candidate_to, [])
+            Candidacy.from_event_and_candidate_candidacy_requests(self.event_to_candidate_to, [])
 
-        self.assertEqual(str(e.exception), 'At least one candidate is required to create a candidacy')
+        self.assertEqual(str(e.exception), 'At least one CandidacyCandidateRequest is required to create a candidacy')
 
         with self.assertRaises(ValueError) as e:
-            Candidacy.from_event_and_candidates(self.event_to_candidate_to, None)
+            Candidacy.from_event_and_candidate_candidacy_requests(self.event_to_candidate_to, None)
 
-        self.assertEqual(str(e.exception), 'At least one candidate is required to create a candidacy')
+        self.assertEqual(str(e.exception), 'At least one CandidacyCandidateRequest is required to create a candidacy')
 
+
+class TestCandidateCandidacyRequest(TestCase):
+    def setUp(self) -> None:
+        self.user = User(username='test_user')
+        self.user.save()
+
+    def test_can_be_created(self):
+        candidate_candidacy_request = CandidateCandidacyRequest(
+            candidate=self.user,
+            as_player=True,
+            as_arbiter=True,
+            as_disk_jockey=True,
+            as_speaker=True,
+        )
+
+        self.assertEqual(candidate_candidacy_request.candidate, self.user)
+        self.assertTrue(candidate_candidacy_request.as_player)
+        self.assertTrue(candidate_candidacy_request.as_arbiter)
+        self.assertTrue(candidate_candidacy_request.as_disk_jockey)
+        self.assertTrue(candidate_candidacy_request.as_speaker)
+
+    def test_cannot_be_created_without_at_least_one_role(self):
+        parameters_to_tweak = {
+            'as_player': True,
+            'as_arbiter': True,
+            'as_disk_jockey': True,
+            'as_speaker': True,
+        }
+        default_parameters = {
+            'as_player': False,
+            'as_arbiter': False,
+            'as_disk_jockey': False,
+            'as_speaker': False,
+        }
+        for parameter, value in parameters_to_tweak.items():
+            test_valid_parameters = default_parameters.copy()
+            test_valid_parameters[parameter] = value
+            CandidateCandidacyRequest(
+                candidate=self.user,
+                **test_valid_parameters,
+            )
+        with self.assertRaises(ValueError) as e:
+            CandidateCandidacyRequest(
+                candidate=self.user,
+                as_player=False,
+                as_arbiter=False,
+                as_disk_jockey=False,
+                as_speaker=False,
+            )
+
+        self.assertEqual(str(e.exception), 'At least one role is required to create a candidacy request')

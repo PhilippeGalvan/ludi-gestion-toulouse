@@ -4,7 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
 from .models import Event, Candidacy
-from .app import remove_candidacy, add_candidacy_to_event
+from .app import remove_candidacy, register_new_candidacy
+from .core import CandidateCandidacyRequest
 
 
 class AllEventsView(LoginRequiredMixin, ListView):
@@ -26,7 +27,14 @@ def register_member(request):
         raise ValueError('Only POST requests are allowed')
 
     event = Event.objects.get(pk=request.POST["event_uuid"])
-    add_candidacy_to_event(event, [request.user])
+    candidate_candidacy_requests = [
+        CandidateCandidacyRequest(
+            candidate=request.user,
+            as_player=True,
+        )
+    ]
+    register_new_candidacy(event, candidate_candidacy_requests)
+
     return redirect('events:all-events')
 
 

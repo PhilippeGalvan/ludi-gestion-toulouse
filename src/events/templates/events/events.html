@@ -24,7 +24,38 @@
                 {% else %}
                     {% for candidacy in event.candidacies.all %}
                         {% if user in candidacy.candidates.all %}
-                            <p>{{ candidacy.candidates.all }}</p>
+                            <p>Candidature {{ forloop.counter }} : </p>
+                            {% for candidate_wishes in candidacy.detailed_candidates.all %}
+                                <p>Souhaits de : {{ candidate_wishes.candidate.username }}:
+                                <p>En tant que joueur ?:
+                                    {% if candidate_wishes.player %}
+                                        Oui
+                                    {% else %}
+                                        Non
+                                    {% endif %}
+                                </p>
+                                <p>En tant que mc ?:
+                                    {% if candidate_wishes.speaker %}
+                                        Oui
+                                    {% else %}
+                                        Non
+                                    {% endif %}
+                                </p>
+                                <p>En tant que dj ?:
+                                    {% if candidate_wishes.disk_jockey %}
+                                        Oui
+                                    {% else %}
+                                        Non
+                                    {% endif %}
+                                </p>
+                                <p>En tant qu'arbitre ?:
+                                    {% if candidate_wishes.arbiter %}
+                                        Oui
+                                    {% else %}
+                                        Non
+                                    {% endif %}
+                                </p>
+                            {% endfor %}
                             <form action="{% url 'events:unregister-member' %}" method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="event_uuid" value="{{ event.pk }}">

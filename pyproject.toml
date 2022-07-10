@@ -11,6 +11,7 @@ packages = [
 python = "^3.10"
 Django = "^4.0.5"
 environs = "^9.5.0"
+attrs = "^21.4.0"
 
 [tool.poetry.dev-dependencies]
 
