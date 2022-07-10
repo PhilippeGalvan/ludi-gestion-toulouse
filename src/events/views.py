@@ -45,7 +45,6 @@ def register_candidacy(request, event_uuid: str):
 
 @login_required
 def unregister_candidacy(request, event_uuid: str, candidacy_uuid: str):
-    print(request.method)
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 

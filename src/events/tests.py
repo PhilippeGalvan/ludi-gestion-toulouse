@@ -215,6 +215,7 @@ class TestEventUnregisterCandidacy(TestCase):
         self.event_to_unregister_from = new_test_event(
             candidate_candidacy_requests=[candidate_candidacy_request],
         )
+        self.view_path = f'/events/{self.event_to_unregister_from.uuid}/candidacies/{self.event_to_unregister_from.candidacies.first().uuid}/cancel'
         self.client.login(username=self.default_user.username, password='test_password')
 
     def tearDown(self) -> None:
@@ -222,9 +223,8 @@ class TestEventUnregisterCandidacy(TestCase):
 
     def test_removes_candidacy_from_event(self):
         self.assertEqual(self.event_to_unregister_from.candidacies.count(), 1)
-        path = f'/events/{self.event_to_unregister_from.uuid}/candidacies/{self.event_to_unregister_from.candidacies.first().uuid}/'
         response = self.client.post(
-            path,
+            self.view_path,
             follow=True,
         )
 
