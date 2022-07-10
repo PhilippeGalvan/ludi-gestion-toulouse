@@ -1,11 +1,11 @@
 from django.urls import path
 
-from .views import AllEventsView, register_member, unregister_member
+from .views import AllEventsView, register_candidacy, unregister_candidacy
 
 app_name = 'events'
 
 urlpatterns = [
     path('', AllEventsView.as_view(), name='all-events'),
-    path('register/', register_member, name='register-member'),
-    path('unregister/', unregister_member, name='unregister-member'),
+    path('register/', register_candidacy, name='register-member'),
+    path('unregister/', unregister_candidacy, name='unregister-member'),
 ]

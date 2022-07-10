@@ -22,7 +22,7 @@ class AllEventsView(LoginRequiredMixin, ListView):
 
 
 @login_required
-def register_member(request):
+def register_candidacy(request):
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
@@ -44,7 +44,7 @@ def register_member(request):
 
 
 @login_required
-def unregister_member(request):
+def unregister_candidacy(request):
     if request.method != 'POST':
         raise ValueError('Only POST requests are allowed')
 
