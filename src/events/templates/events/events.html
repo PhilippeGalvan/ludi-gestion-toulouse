@@ -39,13 +39,6 @@
                                     Non
                                 {% endif %}
                             </p>
-                            <p>En tant que dj ?:
-                                {% if candidate_wishes.disk_jockey %}
-                                    Oui
-                                {% else %}
-                                    Non
-                                {% endif %}
-                            </p>
                             <p>En tant qu'arbitre ?:
                                 {% if candidate_wishes.arbiter %}
                                     Oui
@@ -53,6 +46,13 @@
                                     Non
                                 {% endif %}
                             </p>
+                            </p>
+                            <p>En tant que dj ?:
+                                {% if candidate_wishes.disk_jockey %}
+                                    Oui
+                                {% else %}
+                                    Non
+                                {% endif %}
                         {% endfor %}
                         <form action="{% url 'events:unregister-candidacy' event.pk candidacy.pk %}" method="post">
                             {% csrf_token %}
