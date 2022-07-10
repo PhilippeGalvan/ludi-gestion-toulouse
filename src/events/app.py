@@ -1,5 +1,4 @@
 from .models import Event, Candidacy
-from common.models import User
 from .core import CandidateCandidacyRequest
 
 
