@@ -1,6 +1,7 @@
 name: Build and test
 
 on: [pull_request]
+
 env:
   LUDIGESTION_SECRET_KEY: x^7pz2d(06mt_mi%$_kjf@+3xcg--v&ufcmv_n-ax7awmv0f3
   LUDIGESTION_DEBUG: False
