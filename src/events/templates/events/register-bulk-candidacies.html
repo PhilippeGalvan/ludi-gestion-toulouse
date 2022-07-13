@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ludi Gestion - Candidature groupée{% endblock %}
+
+{% block content %}
+Candidature groupée: Seul la première ligne est requise. Les autres lignes sont optionnelles.
+<form action="{% url 'events:register-bulk-candidacies' event_uuid %}" method="post">
+    {% csrf_token %}
+    <p>{{ main_candidacy_form }} Candidat => {{ user }}</p>
+    {{ form.management_form }}
+    {% for form_unit in form %}
+        <p>Co-Candidat:</p>
+        <p>{{ form_unit }}</p>
+        {% endfor %}
+    <input type="submit" value="Postuler ensemble!">
+</form>
+{% endblock %}

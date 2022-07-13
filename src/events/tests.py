@@ -5,7 +5,6 @@ from events.models import Event, Candidacy
 from common.models import User
 from .app import register_new_candidacy
 from .core import CandidateCandidacyRequest
-from .forms import IndividualCandidacyForm
 
 
 class TestObjectSequence:
@@ -323,3 +322,121 @@ class TestCandidateCandidacyRequest(TestCase):
             )
 
         self.assertEqual(str(e.exception), 'At least one role is required to create a candidacy request')
+
+
+class TestCandidacyAsAGroup(TestCase):
+    def setUp(self) -> None:
+        self.default_user = User(username='test_user')
+        self.default_user.set_password('test_password')
+        self.default_user.save()
+
+        self.co_candidate = User(username='test_co_candidate')
+        self.co_candidate.save()
+
+        self.event_to_register_to = new_test_event()
+        self.view_path = f'/events/{self.event_to_register_to.pk}/candidacies/bulk/'
+        self.events_path = '/events/'
+
+        self.client.login(username=self.default_user.username, password='test_password')
+
+    def tearDown(self) -> None:
+        pass
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.view_path)
+
+        self.assertRedirects(response, f'/accounts/login/?next={self.view_path}')
+
+    def test_endpoint_is_working(self):
+        response = self.client.get(self.view_path)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_is_preselected_as_part_of_the_group(self):
+        response = self.client.get(self.view_path)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.default_user.username)
+
+    def test_group_candidacy_with_1_co_candidate(self):
+        main_candidate_form_data = {
+            'player': ['on'],
+            'arbiter': ['on'],
+            'disk_jockey': ['on'],
+        }
+        co_candidates = {
+            'form-TOTAL_FORMS': ['10'],
+            'form-INITIAL_FORMS': ['0'],
+            'form-0-candidate': [self.co_candidate.uuid],
+            'form-0-player': ['on'],
+            'form-0-arbiter': ['on'],
+        }
+        response = self.client.post(
+            self.view_path,
+            data={
+                **main_candidate_form_data,
+                **co_candidates,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
+        self.assertEqual(event_with_registration.candidacies.count(), 1)
+
+    def test_post_request_does_not_register_candidacy_if_any_co_candidate_is_selected_without_request_role(self):
+        co_candidate2 = User(username='test_co_candidate2')
+        co_candidate2.save()
+
+        main_candidate_form_data = {
+            'player': ['on'],
+            'arbiter': ['on'],
+            'disk_jockey': ['on'],
+        }
+        co_candidates = {
+            'form-TOTAL_FORMS': ['10'],
+            'form-INITIAL_FORMS': ['0'],
+            'form-0-candidate': [self.co_candidate.uuid],
+            'form-0-player': ['on'],
+            'form-1-candidate': [co_candidate2.uuid],
+        }
+
+        response = self.client.post(
+            self.view_path,
+            data={
+                **main_candidate_form_data,
+                **co_candidates,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
+        self.assertEqual(event_with_registration.candidacies.count(), 0)
+
+    def test_solo_candidacy_is_possible_through_group_candidacy(self):
+        main_candidate_form_data = {
+            'player': ['on'],
+            'arbiter': ['on'],
+            'disk_jockey': ['on'],
+        }
+        co_candidates = {
+            'form-TOTAL_FORMS': ['10'],
+            'form-INITIAL_FORMS': ['0'],
+        }
+        response = self.client.post(
+            self.view_path,
+            data={
+                **main_candidate_form_data,
+                **co_candidates,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
+        self.assertEqual(event_with_registration.candidacies.count(), 1)

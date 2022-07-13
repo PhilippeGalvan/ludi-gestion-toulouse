@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load is_candidating_alone %}
 
 {% block title %}Ludi Gestion - Evènements{% endblock %}
 
@@ -12,57 +13,63 @@
                 <p>{{ event.name }} le {{ event.date_french_format }}</p>
                 <p>{{ event.description }}</p>
             </div>
-            {% if user not in event.candidates %}
+            <div>
+                <a href="{% url 'events:register-bulk-candidacies' event.pk %}">
+                    <button>
+                        Candidature groupée
+                    </button>
+                </a>
+            </div>
+            {% if not user|is_candidating_alone:user %}
             <div>
                 <form action="{% url 'events:register-member' event.pk%}" method="post">
                     {% csrf_token %}
                     {{ individual_candidacy_form.as_p }}
                     <input type="submit" value="Postuler">
                 </form>
-            {% else %}
-                {% for candidacy in event.candidacies.all %}
-                    {% if user in candidacy.candidates.all %}
-                        <p>Candidature {{ forloop.counter }} : </p>
-                        {% for candidate_wishes in candidacy.detailed_candidates.all %}
-                            <p>Souhaits de : {{ candidate_wishes.candidate.username }}:
-                            <p>En tant que joueur ?:
-                                {% if candidate_wishes.player %}
-                                    Oui
-                                {% else %}
-                                    Non
-                                {% endif %}
-                            </p>
-                            <p>En tant que mc ?:
-                                {% if candidate_wishes.speaker %}
-                                    Oui
-                                {% else %}
-                                    Non
-                                {% endif %}
-                            </p>
-                            <p>En tant qu'arbitre ?:
-                                {% if candidate_wishes.arbiter %}
-                                    Oui
-                                {% else %}
-                                    Non
-                                {% endif %}
-                            </p>
-                            </p>
-                            <p>En tant que dj ?:
-                                {% if candidate_wishes.disk_jockey %}
-                                    Oui
-                                {% else %}
-                                    Non
-                                {% endif %}
-                        {% endfor %}
-                        <form action="{% url 'events:unregister-candidacy' event.pk candidacy.pk %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit">
-                                Annuler cette candidature
-                            </button>
-                        </form>
-                    {% endif %}
-                {% endfor %}
             {% endif %}
+            {% for candidacy in event.candidacies.all %}
+                {% if user in candidacy.candidates.all %}
+                    <p>Candidature {{ forloop.counter }} : </p>
+                    {% for candidate_wishes in candidacy.detailed_candidates.all %}
+                        <p>Souhaits de : {{ candidate_wishes.candidate.username }}:
+                        <p>En tant que joueur ?:
+                            {% if candidate_wishes.player %}
+                                Oui
+                            {% else %}
+                                Non
+                            {% endif %}
+                        </p>
+                        <p>En tant que mc ?:
+                            {% if candidate_wishes.speaker %}
+                                Oui
+                            {% else %}
+                                Non
+                            {% endif %}
+                        </p>
+                        <p>En tant qu'arbitre ?:
+                            {% if candidate_wishes.arbiter %}
+                                Oui
+                            {% else %}
+                                Non
+                            {% endif %}
+                        </p>
+                        </p>
+                        <p>En tant que dj ?:
+                            {% if candidate_wishes.disk_jockey %}
+                                Oui
+                            {% else %}
+                                Non
+                            {% endif %}
+                    {% endfor %}
+                    <form action="{% url 'events:unregister-candidacy' event.pk candidacy.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">
+                            Annuler cette candidature
+                        </button>
+                    </form>
+                {% endif %}
+            {% endfor %}
             </div>
         </div>
         {% endfor %}
