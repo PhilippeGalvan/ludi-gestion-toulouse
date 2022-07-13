@@ -90,6 +90,19 @@ class TestEvent(TestCase):
         self.assertEqual(new_candidacy.candidates.count(), 1)
         self.assertEqual(new_candidacy.candidates.first(), self.default_user)
 
+    def test_new_candidacy_cannot_include_the_same_candidate_twice(self):
+        event = new_test_event()
+        candidate_candidacy_request = CandidateCandidacyRequest(
+            candidate=self.default_user,
+            as_player=True,
+        )
+
+        with self.assertRaises(ValueError) as e:
+            register_new_candidacy(event, [candidate_candidacy_request, candidate_candidacy_request])
+
+        self.assertEqual(str(e.exception), 'A candidate cannot be added to a candidacy more than once.')
+        self.assertEqual(self.default_user.candidacies.count(), 0)
+
 
 class TestAllEvents(TestCase):
     def setUp(self) -> None:

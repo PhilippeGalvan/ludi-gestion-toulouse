@@ -63,6 +63,9 @@ class Candidacy(BaseModel):
         if not candidate_candidacy_requests:
             raise ValueError('At least one CandidacyCandidateRequest is required to create a candidacy')
 
+        if len(candidate_candidacy_requests) > len({candidate_candidacy_request.candidate for candidate_candidacy_request in candidate_candidacy_requests}):
+            raise ValueError('A candidate cannot be added to a candidacy more than once.')
+
         candidacy = cls(event=event)
         candidacy.save()
         for candidate_candidacy_request in candidate_candidacy_requests:
