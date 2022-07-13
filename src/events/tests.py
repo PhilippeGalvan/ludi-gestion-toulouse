@@ -482,3 +482,26 @@ class TestCandidacyAsAGroup(TestCase):
 
         event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
         self.assertEqual(event_with_registration.candidacies.count(), 0)
+
+    def test_contains_at_least_main_candidate(self):
+        main_candidate_form_data = {}
+        co_candidates = {
+            'form-TOTAL_FORMS': ['10'],
+            'form-INITIAL_FORMS': ['0'],
+            'form-0-candidate': [self.co_candidate.uuid],
+            'form-0-player': ['on'],
+        }
+
+        response = self.client.post(
+            self.view_path,
+            data={
+                **main_candidate_form_data,
+                **co_candidates,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
+        self.assertEqual(event_with_registration.candidacies.count(), 0)

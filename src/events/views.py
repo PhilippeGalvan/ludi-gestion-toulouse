@@ -58,7 +58,7 @@ class RegisterBulkCandidacies(LoginRequiredMixin, FormView):
     def form_valid(self, formset):
         main_form = MainCandidacyForm(self.request.POST)
         if not main_form.is_valid():
-            return super.form_invalid(formset)
+            return super().form_invalid(formset)
 
         event = Event.objects.get(pk=self.kwargs['event_uuid'])
         candidate_candidacy_requests = [
