@@ -440,3 +440,32 @@ class TestCandidacyAsAGroup(TestCase):
 
         event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
         self.assertEqual(event_with_registration.candidacies.count(), 1)
+
+    def test_same_candidate_cannot_appear_twice_in_a_candidacy(self):
+        main_candidate_form_data = {
+            'player': ['on'],
+            'arbiter': ['on'],
+            'disk_jockey': ['on'],
+        }
+        co_candidates = {
+            'form-TOTAL_FORMS': ['10'],
+            'form-INITIAL_FORMS': ['0'],
+            'form-0-candidate': [self.co_candidate.uuid],
+            'form-0-player': ['on'],
+            'form-1-candidate': [self.co_candidate.uuid],
+            'form-1-disk_jockey': ['on'],
+        }
+
+        response = self.client.post(
+            self.view_path,
+            data={
+                **main_candidate_form_data,
+                **co_candidates,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        event_with_registration = Event.objects.get(uuid=self.event_to_register_to.uuid)
+        self.assertEqual(event_with_registration.candidacies.count(), 0)

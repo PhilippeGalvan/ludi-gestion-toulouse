@@ -70,8 +70,15 @@ class RegisterBulkCandidacies(LoginRequiredMixin, FormView):
                 as_speaker=main_form.cleaned_data["speaker"],
             )
         ]
+        candidates = set()
         for form in formset.forms:
             if form.cleaned_data and form.is_valid():
+
+                if form.cleaned_data['candidate'] in candidates:
+                    return super().form_invalid(formset)
+                else:
+                    candidates.add(form.cleaned_data['candidate'])
+
                 candidate_candidacy_requests.append(
                     CandidateCandidacyRequest(
                         candidate=form.cleaned_data["candidate"],
